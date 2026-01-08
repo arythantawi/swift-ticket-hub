@@ -14,6 +14,7 @@ interface TicketData {
   passengers: number;
   totalPrice: number;
   notes?: string | null;
+  paymentStatus?: string;
 }
 
 export const generateTicketPdf = (data: TicketData) => {
@@ -32,6 +33,25 @@ export const generateTicketPdf = (data: TicketData) => {
   const lightGray: [number, number, number] = [240, 240, 240];
   const white: [number, number, number] = [255, 255, 255];
   const green: [number, number, number] = [22, 163, 74];
+  const yellow: [number, number, number] = [234, 179, 8];
+  const orange: [number, number, number] = [249, 115, 22];
+  
+  // Get status display info
+  const getStatusInfo = (status?: string): { label: string; color: [number, number, number] } => {
+    switch (status) {
+      case 'paid':
+      case 'confirmed':
+        return { label: 'LUNAS', color: green };
+      case 'waiting_verification':
+        return { label: 'VERIFIKASI', color: yellow };
+      case 'pending':
+        return { label: 'PENDING', color: orange };
+      default:
+        return { label: 'PENDING', color: orange };
+    }
+  };
+  
+  const statusInfo = getStatusInfo(data.paymentStatus);
   
   // Helper functions
   const drawLine = (y: number, color: [number, number, number] = lightGray) => {
@@ -109,12 +129,13 @@ export const generateTicketPdf = (data: TicketData) => {
   }), pageWidth / 2, y);
   
   // Status badge
-  doc.setFillColor(...green);
-  doc.roundedRect(pageWidth - margin - 32, y - 5, 32, 8, 2, 2, 'F');
+  const statusWidth = statusInfo.label.length * 4 + 10;
+  doc.setFillColor(...statusInfo.color);
+  doc.roundedRect(pageWidth - margin - statusWidth, y - 5, statusWidth, 8, 2, 2, 'F');
   doc.setTextColor(...white);
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
-  doc.text('LUNAS', pageWidth - margin - 16, y, { align: 'center' });
+  doc.text(statusInfo.label, pageWidth - margin - statusWidth / 2, y, { align: 'center' });
   
   y += 15;
   drawLine(y);

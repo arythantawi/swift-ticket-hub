@@ -247,6 +247,7 @@ const Booking = () => {
                     passengers: passengers,
                     totalPrice: totalPrice,
                     notes: formData.notes,
+                    paymentStatus: 'waiting_verification',
                   })}
                   variant="outline"
                   className="flex items-center gap-2"
