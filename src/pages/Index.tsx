@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
+import Services from '@/components/Services';
 import PopularRoutes from '@/components/PopularRoutes';
 import AllRoutes from '@/components/AllRoutes';
 import Features from '@/components/Features';
@@ -41,6 +42,7 @@ const Index = () => {
       <Navbar />
       <main>
         <Hero />
+        <Services />
         <section id="rute">
           <PopularRoutes />
         </section>
