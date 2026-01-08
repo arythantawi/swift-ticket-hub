@@ -31,8 +31,11 @@ const Booking = () => {
   const to = searchParams.get('to') || '';
   const via = searchParams.get('via') || '';
   const pickupTime = searchParams.get('pickupTime') || '';
-  const date = searchParams.get('date') || '';
+  const initialDate = searchParams.get('date') || '';
   const passengers = parseInt(searchParams.get('passengers') || '1');
+  
+  // State for travel date (editable if not provided in URL)
+  const [travelDate, setTravelDate] = useState(initialDate);
   
   // Get price from schedule data automatically
   const pricePerPerson = getRoutePrice(from, to);
@@ -131,6 +134,11 @@ const Booking = () => {
       return;
     }
 
+    if (!travelDate) {
+      toast.error('Mohon pilih tanggal perjalanan');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -146,7 +154,7 @@ const Booking = () => {
           route_to: to,
           route_via: via || null,
           pickup_time: pickupTime,
-          travel_date: date,
+          travel_date: travelDate,
           passengers: passengers,
           total_price: totalPrice,
           payment_status: 'pending',
@@ -206,7 +214,7 @@ const Booking = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Tanggal</span>
-                    <span className="font-medium">{formatDate(date)}</span>
+                    <span className="font-medium">{formatDate(travelDate)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Jam Penjemputan</span>
@@ -233,7 +241,7 @@ const Booking = () => {
                     routeFrom: from,
                     routeTo: to,
                     routeVia: via,
-                    travelDate: date,
+                    travelDate: travelDate,
                     pickupTime: pickupTime,
                     pickupAddress: formData.pickupAddress,
                     passengers: passengers,
@@ -302,7 +310,7 @@ const Booking = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Tanggal</span>
-                      <span className="font-medium text-foreground">{formatDate(date)}</span>
+                      <span className="font-medium text-foreground">{formatDate(travelDate)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Jam Penjemputan</span>
@@ -399,6 +407,24 @@ const Booking = () => {
                         onChange={handleInputChange}
                         placeholder="email@contoh.com"
                         className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Travel Date Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Tanggal Perjalanan *
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        type="date"
+                        value={travelDate}
+                        onChange={(e) => setTravelDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="pl-10"
+                        required
                       />
                     </div>
                   </div>
@@ -553,7 +579,7 @@ const Booking = () => {
                     <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="text-sm text-muted-foreground">Tanggal</p>
-                      <p className="font-medium text-foreground">{formatDate(date)}</p>
+                      <p className="font-medium text-foreground">{travelDate ? formatDate(travelDate) : 'Belum dipilih'}</p>
                     </div>
                   </div>
 
