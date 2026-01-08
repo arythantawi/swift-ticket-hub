@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          id: string
+          notes: string | null
+          order_id: string
+          passengers: number
+          payment_proof_drive_id: string | null
+          payment_proof_url: string | null
+          payment_status: string
+          pickup_address: string
+          pickup_time: string
+          route_from: string
+          route_to: string
+          route_via: string | null
+          total_price: number
+          travel_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          passengers?: number
+          payment_proof_drive_id?: string | null
+          payment_proof_url?: string | null
+          payment_status?: string
+          pickup_address: string
+          pickup_time: string
+          route_from: string
+          route_to: string
+          route_via?: string | null
+          total_price?: number
+          travel_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          passengers?: number
+          payment_proof_drive_id?: string | null
+          payment_proof_url?: string | null
+          payment_status?: string
+          pickup_address?: string
+          pickup_time?: string
+          route_from?: string
+          route_to?: string
+          route_via?: string | null
+          total_price?: number
+          travel_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
