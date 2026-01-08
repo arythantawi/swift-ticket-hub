@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, MapPin, Users, Calendar, User, Phone, Mail, MapPinned, CheckCircle, Printer } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, Users, Calendar, User, Phone, Mail, MapPinned, CheckCircle, Printer, Navigation, Edit3, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,7 @@ import { generateTicketPdf } from '@/lib/generateTicketPdf';
 import { getRoutePrice } from '@/lib/scheduleData';
 
 type BookingStep = 'form' | 'payment' | 'success';
+type AddressMode = 'gps' | 'manual';
 
 const Booking = () => {
   const [searchParams] = useSearchParams();
@@ -22,6 +23,9 @@ const Booking = () => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('form');
   const [orderId, setOrderId] = useState<string>('');
   const [paymentUploaded, setPaymentUploaded] = useState(false);
+  const [addressMode, setAddressMode] = useState<AddressMode>('gps');
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
   
   const from = searchParams.get('from') || '';
   const to = searchParams.get('to') || '';
@@ -64,6 +68,59 @@ const Booking = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Browser Anda tidak mendukung GPS');
+      return;
+    }
+
+    setIsGettingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setGpsCoords({ lat: latitude, lng: longitude });
+        
+        // Create Google Maps link for the location
+        const mapsLink = `https://maps.google.com/?q=${latitude},${longitude}`;
+        const locationText = `📍 Lokasi GPS: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}\n🔗 ${mapsLink}`;
+        
+        setFormData(prev => ({ ...prev, pickupAddress: locationText }));
+        setIsGettingLocation(false);
+        toast.success('Lokasi berhasil didapatkan!');
+      },
+      (error) => {
+        setIsGettingLocation(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error('Akses lokasi ditolak. Silakan izinkan akses lokasi di browser Anda.');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            toast.error('Informasi lokasi tidak tersedia.');
+            break;
+          case error.TIMEOUT:
+            toast.error('Waktu permintaan lokasi habis.');
+            break;
+          default:
+            toast.error('Gagal mendapatkan lokasi.');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  const handleAddressModeChange = (mode: AddressMode) => {
+    setAddressMode(mode);
+    if (mode === 'manual') {
+      setFormData(prev => ({ ...prev, pickupAddress: '' }));
+      setGpsCoords(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -350,17 +407,104 @@ const Booking = () => {
                     <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Alamat Penjemputan *
                     </label>
-                    <div className="relative">
-                      <MapPinned className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
-                      <Textarea
-                        name="pickupAddress"
-                        value={formData.pickupAddress}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan alamat lengkap untuk penjemputan"
-                        className="pl-10 min-h-[100px]"
-                        required
-                      />
+                    
+                    {/* Address Mode Toggle */}
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => handleAddressModeChange('gps')}
+                        className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                          addressMode === 'gps'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border bg-secondary/30 text-muted-foreground hover:border-primary/50'
+                        }`}
+                      >
+                        <Navigation className="w-4 h-4" />
+                        <span className="text-sm font-medium">GPS Lokasi</span>
+                        <span className="text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full">Rekomendasi</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddressModeChange('manual')}
+                        className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                          addressMode === 'manual'
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border bg-secondary/30 text-muted-foreground hover:border-primary/50'
+                        }`}
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        <span className="text-sm font-medium">Input Manual</span>
+                      </button>
                     </div>
+
+                    {/* GPS Mode */}
+                    {addressMode === 'gps' && (
+                      <div className="space-y-3">
+                        <Button
+                          type="button"
+                          onClick={handleGetLocation}
+                          disabled={isGettingLocation}
+                          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-6"
+                        >
+                          {isGettingLocation ? (
+                            <>
+                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                              Mendapatkan Lokasi...
+                            </>
+                          ) : (
+                            <>
+                              <Navigation className="w-5 h-5 mr-2" />
+                              {gpsCoords ? 'Perbarui Lokasi GPS' : 'Bagikan Lokasi GPS Saya'}
+                            </>
+                          )}
+                        </Button>
+                        
+                        {gpsCoords && (
+                          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center flex-shrink-0">
+                                <MapPinned className="w-5 h-5 text-green-600 dark:text-green-400" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-green-800 dark:text-green-300 mb-1">Lokasi Berhasil Didapatkan!</p>
+                                <p className="text-sm text-green-700 dark:text-green-400">
+                                  Koordinat: {gpsCoords.lat.toFixed(6)}, {gpsCoords.lng.toFixed(6)}
+                                </p>
+                                <a
+                                  href={`https://maps.google.com/?q=${gpsCoords.lat},${gpsCoords.lng}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-primary underline mt-1 inline-block"
+                                >
+                                  Lihat di Google Maps
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {!gpsCoords && (
+                          <p className="text-xs text-muted-foreground text-center">
+                            💡 Dengan GPS, driver dapat menemukan lokasi Anda dengan lebih akurat
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Manual Mode */}
+                    {addressMode === 'manual' && (
+                      <div className="relative">
+                        <MapPinned className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
+                        <Textarea
+                          name="pickupAddress"
+                          value={formData.pickupAddress}
+                          onChange={handleInputChange}
+                          placeholder="Masukkan alamat lengkap untuk penjemputan (contoh: Jl. Raya No. 123, Kel. X, Kec. Y, Kota Z)"
+                          className="pl-10 min-h-[100px]"
+                          required={addressMode === 'manual'}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div>
