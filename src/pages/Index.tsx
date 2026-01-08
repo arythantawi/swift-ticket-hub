@@ -1,12 +1,56 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useEffect } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/Hero';
+import PopularRoutes from '@/components/PopularRoutes';
+import AllRoutes from '@/components/AllRoutes';
+import Features from '@/components/Features';
+import PaymentInfo from '@/components/PaymentInfo';
+import Footer from '@/components/Footer';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Index = () => {
+  useEffect(() => {
+    // Smooth scroll for anchor links
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLAnchorElement;
+      if (target.hash) {
+        e.preventDefault();
+        const element = document.querySelector(target.hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    };
+
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+      anchor.addEventListener('click', handleAnchorClick as EventListener);
+    });
+
+    return () => {
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.removeEventListener('click', handleAnchorClick as EventListener);
+      });
+    };
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main>
+        <Hero />
+        <section id="rute">
+          <PopularRoutes />
+        </section>
+        <AllRoutes />
+        <Features />
+        <section id="pembayaran">
+          <PaymentInfo />
+        </section>
+      </main>
+      <Footer />
     </div>
   );
 };
