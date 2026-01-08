@@ -25,219 +25,233 @@ interface TripOperation {
 }
 
 export const generateOperationPdf = (trip: TripOperation): void => {
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: [120, 210] // Custom size similar to receipt
+  });
+  
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 20;
+  const margin = 8;
   const contentWidth = pageWidth - margin * 2;
   
-  // Colors
-  const headerBg: [number, number, number] = [41, 128, 185];
-  const tableBorder: [number, number, number] = [189, 195, 199];
-  const tableHeaderBg: [number, number, number] = [236, 240, 241];
-  const black: [number, number, number] = [44, 62, 80];
-  const white: [number, number, number] = [255, 255, 255];
-  const greenText: [number, number, number] = [39, 174, 96];
-  const redText: [number, number, number] = [192, 57, 43];
-  const blueText: [number, number, number] = [41, 128, 185];
+  // Colors - blue theme like the image
+  const blue: [number, number, number] = [0, 136, 186];
+  const black: [number, number, number] = [0, 0, 0];
   
   // Helper for currency formatting
   const formatPrice = (price: number): string => {
-    return 'Rp ' + new Intl.NumberFormat('id-ID').format(price);
+    return new Intl.NumberFormat('id-ID').format(price);
   };
   
   // Helper for date formatting
   const formatDate = (dateStr: string): string => {
-    return new Date(dateStr).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-  
-  const formatDateLong = (dateStr: string): string => {
-    return new Date(dateStr).toLocaleDateString('id-ID', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
+    const date = new Date(dateStr);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString().slice(-2);
+    return `${day}-${month}-${year}`;
   };
   
   // Calculate totals
-  const totalExpense = 
+  const totalExpenseItems = 
     trip.expense_fuel + 
     trip.expense_ferry + 
     trip.expense_snack + 
     trip.expense_meals + 
     trip.expense_driver_commission + 
-    trip.expense_driver_meals + 
+    trip.expense_driver_meals;
+  
+  const totalExpenseAll = totalExpenseItems + 
     trip.expense_toll + 
     trip.expense_parking + 
     trip.expense_other;
   
-  const totalIncome = trip.income_tickets + trip.income_other;
-  const profit = totalIncome - totalExpense;
+  const profit = trip.income_tickets - totalExpenseAll;
+  
+  // Calculate commission percentage
+  const commissionPercent = trip.income_tickets > 0 
+    ? Math.round((trip.expense_driver_commission / trip.income_tickets) * 100) 
+    : 15;
   
   let y = margin;
-  const rowHeight = 10;
-  const colLabel = 70;
-  const colValue = contentWidth - colLabel;
+  const rowHeight = 7;
+  const labelCol = 45;
+  const midCol = 15;
+  const valueCol = contentWidth - labelCol - midCol;
   
   // === HEADER ===
-  doc.setFillColor(...headerBg);
-  doc.rect(0, 0, pageWidth, 35, 'F');
+  doc.setDrawColor(...blue);
+  doc.setTextColor(...blue);
   
-  doc.setTextColor(...white);
-  doc.setFontSize(22);
+  // Company name
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('TRAVEL EXPRESS', pageWidth / 2, 15, { align: 'center' });
+  doc.text('Travel Express', pageWidth / 2, y + 5, { align: 'center' });
   
-  doc.setFontSize(11);
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.text('LAPORAN OPERASIONAL PERJALANAN', pageWidth / 2, 25, { align: 'center' });
+  doc.text('LAYANAN ANTAR JEMPUT', pageWidth / 2, y + 10, { align: 'center' });
+  doc.text('SURABAYA - DENPASAR PP', pageWidth / 2, y + 14, { align: 'center' });
   
-  doc.setFontSize(8);
-  doc.text('Denpasar | Surabaya | www.travelexpress.com', pageWidth / 2, 32, { align: 'center' });
-  
-  y = 45;
-  
-  // === DOCUMENT INFO ===
-  doc.setTextColor(...black);
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, margin, y);
-  doc.text(`ID: ${trip.id.slice(0, 8).toUpperCase()}`, pageWidth - margin, y, { align: 'right' });
+  doc.setFont('helvetica', 'bold');
+  doc.text('OMSET TRAVEL', pageWidth / 2, y + 20, { align: 'center' });
   
-  y += 10;
+  // Underline
+  doc.setLineWidth(0.5);
+  doc.line(margin, y + 23, pageWidth - margin, y + 23);
   
-  // === TABLE HELPER ===
-  const drawTableRow = (label: string, value: string, options?: { bold?: boolean; bgColor?: [number, number, number]; textColor?: [number, number, number] }) => {
-    // Background
-    if (options?.bgColor) {
-      doc.setFillColor(...options.bgColor);
-      doc.rect(margin, y, contentWidth, rowHeight, 'F');
-    }
-    
-    // Borders
-    doc.setDrawColor(...tableBorder);
+  y = 38;
+  
+  // === TABLE HELPERS ===
+  const drawInfoRow = (label: string, midLabel: string, value: string) => {
+    // Draw borders
+    doc.setDrawColor(...blue);
     doc.setLineWidth(0.3);
-    doc.rect(margin, y, colLabel, rowHeight, 'S');
-    doc.rect(margin + colLabel, y, colValue, rowHeight, 'S');
+    doc.rect(margin, y, labelCol, rowHeight, 'S');
+    doc.rect(margin + labelCol, y, midCol, rowHeight, 'S');
+    doc.rect(margin + labelCol + midCol, y, valueCol, rowHeight, 'S');
     
-    // Text
-    doc.setFont('helvetica', options?.bold ? 'bold' : 'normal');
-    doc.setFontSize(9);
+    // Draw text
     doc.setTextColor(...black);
-    doc.text(label, margin + 4, y + 7);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text(label, margin + 2, y + 5);
     
-    if (options?.textColor) {
-      doc.setTextColor(...options.textColor);
-    }
-    doc.text(value, margin + colLabel + colValue - 4, y + 7, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text(midLabel, margin + labelCol + 2, y + 5);
+    doc.text(value, margin + labelCol + midCol + 2, y + 5);
+    
+    y += rowHeight;
+  };
+  
+  const drawSimpleRow = (label: string, value: string, isBold: boolean = false) => {
+    doc.setDrawColor(...blue);
+    doc.setLineWidth(0.3);
+    doc.rect(margin, y, labelCol + midCol, rowHeight, 'S');
+    doc.rect(margin + labelCol + midCol, y, valueCol, rowHeight, 'S');
+    
+    doc.setTextColor(...black);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+    doc.text(label, margin + 2, y + 5);
+    doc.text(value, margin + contentWidth - 2, y + 5, { align: 'right' });
+    
+    y += rowHeight;
+  };
+  
+  const drawExpenseRow = (label: string, midLabel: string, value: string) => {
+    doc.setDrawColor(...blue);
+    doc.setLineWidth(0.3);
+    doc.rect(margin, y, labelCol, rowHeight, 'S');
+    doc.rect(margin + labelCol, y, midCol, rowHeight, 'S');
+    doc.rect(margin + labelCol + midCol, y, valueCol, rowHeight, 'S');
+    
+    doc.setTextColor(...black);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text(label, margin + 2, y + 5);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text(midLabel, margin + labelCol + 2, y + 5);
+    
+    doc.setFontSize(8);
+    doc.text(value, margin + contentWidth - 2, y + 5, { align: 'right' });
     
     y += rowHeight;
   };
   
   const drawSectionHeader = (title: string) => {
-    doc.setFillColor(...headerBg);
-    doc.rect(margin, y, contentWidth, rowHeight + 2, 'F');
-    
-    doc.setTextColor(...white);
-    doc.setFontSize(10);
+    doc.setTextColor(...blue);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text(title, margin + 4, y + 8);
+    doc.text(title, margin, y + 5);
     
-    y += rowHeight + 2;
+    // Underline
+    doc.setLineWidth(0.5);
+    const textWidth = doc.getTextWidth(title);
+    doc.line(margin, y + 6, margin + textWidth + 5, y + 6);
+    
+    y += rowHeight + 1;
   };
   
-  // === INFORMASI TRIP ===
-  drawSectionHeader('INFORMASI PERJALANAN');
+  // === TRIP INFO ===
+  drawInfoRow('Dari', 'Ke :', `${trip.route_from} → ${trip.route_to}`);
+  drawSimpleRow('Plat Nomor', trip.vehicle_number || '-');
+  drawSimpleRow('Sopir', trip.driver_name || '-');
+  drawSimpleRow('Tanggal Berangkat', formatDate(trip.trip_date));
+  drawSimpleRow('Jam Penjemputan', trip.pickup_time);
+  drawSimpleRow('Jumlah Penumpang', `${trip.total_passengers} PAX`);
+  drawSimpleRow('Total Uang Tiket', formatPrice(trip.income_tickets), true);
   
-  drawTableRow('Asal (Dari)', trip.route_from.toUpperCase(), { bgColor: tableHeaderBg });
-  if (trip.route_via) {
-    drawTableRow('Via', trip.route_via.toUpperCase());
-  }
-  drawTableRow('Tujuan (Ke)', trip.route_to.toUpperCase(), { bgColor: tableHeaderBg });
-  drawTableRow('Tanggal Berangkat', formatDateLong(trip.trip_date));
-  drawTableRow('Jam Penjemputan', trip.pickup_time);
-  drawTableRow('Sopir', trip.driver_name || '-');
-  drawTableRow('Nomor Kendaraan', trip.vehicle_number || '-');
-  drawTableRow('Jumlah Penumpang', `${trip.total_passengers} Orang`, { bold: true });
-  
-  y += 5;
-  
-  // === PEMASUKAN ===
-  drawSectionHeader('PEMASUKAN');
-  
-  drawTableRow('Uang Tiket', formatPrice(trip.income_tickets), { textColor: greenText });
-  if (trip.income_other > 0) {
-    drawTableRow('Pemasukan Lain-lain', formatPrice(trip.income_other), { textColor: greenText });
-  }
-  drawTableRow('TOTAL PEMASUKAN', formatPrice(totalIncome), { bold: true, bgColor: [212, 239, 223], textColor: greenText });
-  
-  y += 5;
+  y += 3;
   
   // === PENGELUARAN ===
   drawSectionHeader('PENGELUARAN');
   
-  if (trip.expense_fuel > 0) drawTableRow('Solar / BBM', formatPrice(trip.expense_fuel));
-  if (trip.expense_ferry > 0) drawTableRow('Penyebrangan (Ferry)', formatPrice(trip.expense_ferry));
-  if (trip.expense_snack > 0) drawTableRow('Snack', formatPrice(trip.expense_snack));
-  if (trip.expense_meals > 0) drawTableRow('Makan Penumpang', formatPrice(trip.expense_meals));
-  if (trip.expense_driver_commission > 0) {
-    const commissionPercent = trip.income_tickets > 0 
-      ? Math.round((trip.expense_driver_commission / trip.income_tickets) * 100) 
-      : 0;
-    drawTableRow(`Komisi Sopir (${commissionPercent}%)`, formatPrice(trip.expense_driver_commission));
-  }
-  if (trip.expense_driver_meals > 0) drawTableRow('Uang Makan Sopir', formatPrice(trip.expense_driver_meals));
-  if (trip.expense_toll > 0) drawTableRow('Tol', formatPrice(trip.expense_toll));
-  if (trip.expense_parking > 0) drawTableRow('Parkir', formatPrice(trip.expense_parking));
-  if (trip.expense_other > 0) drawTableRow('Pengeluaran Lain-lain', formatPrice(trip.expense_other));
+  drawExpenseRow('SOLAR', 'Liter', formatPrice(trip.expense_fuel));
+  drawExpenseRow('PENYEBRANGAN', '', formatPrice(trip.expense_ferry));
+  drawExpenseRow('SNACK', 'Orang', formatPrice(trip.expense_snack));
+  drawExpenseRow('MAKAN', 'Orang', formatPrice(trip.expense_meals));
+  drawExpenseRow('KOMISI SOPIR', `${commissionPercent}%`, formatPrice(trip.expense_driver_commission));
+  drawExpenseRow('UANG MAKAN + LAIN', '', formatPrice(trip.expense_driver_meals + trip.expense_other));
   
-  drawTableRow('TOTAL PENGELUARAN', formatPrice(totalExpense), { bold: true, bgColor: [250, 219, 216], textColor: redText });
+  // Additional expenses if any
+  if (trip.expense_toll > 0) {
+    drawExpenseRow('TOL', '', formatPrice(trip.expense_toll));
+  }
+  if (trip.expense_parking > 0) {
+    drawExpenseRow('PARKIR', '', formatPrice(trip.expense_parking));
+  }
+  
+  // Empty row for spacing
+  y += 5;
+  
+  // === TOTAL ===
+  drawSimpleRow('TOTAL', formatPrice(totalExpenseAll), true);
+  
+  y += 3;
+  
+  // === SUMMARY ===
+  drawSimpleRow('TOTAL UANG TIKET', formatPrice(trip.income_tickets), true);
+  drawSimpleRow('TOTAL PENGELUARAN', formatPrice(totalExpenseAll), true);
+  drawSimpleRow('JUMLAH BERSIH', formatPrice(profit), true);
   
   y += 8;
   
-  // === RINGKASAN ===
-  drawSectionHeader('RINGKASAN KEUANGAN');
+  // === FOOTER ===
+  doc.setTextColor(...black);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.text('YANG MENERIMA', margin, y);
+  doc.text('CATATAN :', margin + contentWidth / 2 + 10, y);
   
-  drawTableRow('Total Pemasukan', formatPrice(totalIncome), { textColor: greenText });
-  drawTableRow('Total Pengeluaran', formatPrice(totalExpense), { textColor: redText });
+  // Signature area
+  y += 3;
+  doc.setDrawColor(...blue);
+  doc.setLineWidth(0.3);
   
-  // Profit row with special styling
-  const profitBg: [number, number, number] = profit >= 0 ? [212, 239, 223] : [250, 219, 216];
-  const profitColor: [number, number, number] = profit >= 0 ? greenText : redText;
-  drawTableRow('JUMLAH BERSIH (PROFIT)', formatPrice(profit), { bold: true, bgColor: profitBg, textColor: profitColor });
+  // Left signature box
+  doc.line(margin, y + 15, margin + 35, y + 15);
+  doc.text('(', margin + 5, y + 19);
+  doc.text(')', margin + 30, y + 19);
   
-  // === CATATAN ===
+  // Notes lines
+  doc.line(margin + contentWidth / 2 + 10, y + 5, pageWidth - margin, y + 5);
+  doc.line(margin + contentWidth / 2 + 10, y + 10, pageWidth - margin, y + 10);
+  doc.line(margin + contentWidth / 2 + 10, y + 15, pageWidth - margin, y + 15);
+  
+  // Add notes text if exists
   if (trip.notes) {
-    y += 10;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...black);
-    doc.text('Catatan:', margin, y);
-    
-    y += 6;
+    doc.setFontSize(6);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    const notesLines = doc.splitTextToSize(trip.notes, contentWidth);
-    doc.text(notesLines, margin, y);
+    const notesLines = doc.splitTextToSize(trip.notes, contentWidth / 2 - 5);
+    doc.text(notesLines.slice(0, 3), margin + contentWidth / 2 + 12, y + 4);
   }
   
-  // === FOOTER ===
-  const footerY = 275;
-  
-  doc.setDrawColor(...tableBorder);
-  doc.setLineWidth(0.5);
-  doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
-  
-  doc.setFontSize(8);
-  doc.setTextColor(120, 120, 120);
-  doc.text('Dokumen ini digenerate secara otomatis oleh sistem Travel Express.', margin, footerY);
-  doc.text(`© ${new Date().getFullYear()} Travel Express - All Rights Reserved`, pageWidth - margin, footerY, { align: 'right' });
-  
   // Save file
-  const fileName = `Laporan-${trip.route_from}-${trip.route_to}-${formatDate(trip.trip_date).replace(/\//g, '-')}.pdf`;
+  const fileName = `Omset-${trip.route_from}-${trip.route_to}-${formatDate(trip.trip_date).replace(/\//g, '-')}.pdf`;
   doc.save(fileName);
 };
