@@ -12,7 +12,8 @@ import {
   Phone,
   Clock,
   Filter,
-  Printer
+  Printer,
+  MessageCircle
 } from 'lucide-react';
 import { generateTicketPdf } from '@/lib/generateTicketPdf';
 import { Button } from '@/components/ui/button';
@@ -147,6 +148,47 @@ const Admin = () => {
       currency: 'IDR',
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  const formatPhoneForWhatsApp = (phone: string) => {
+    let cleaned = phone.replace(/\D/g, '');
+    if (cleaned.startsWith('0')) {
+      cleaned = '62' + cleaned.slice(1);
+    }
+    return cleaned;
+  };
+
+  const generateWhatsAppMessage = (booking: Booking) => {
+    const formattedPrice = formatPrice(booking.total_price);
+    const formattedDate = formatDate(booking.travel_date);
+    const route = booking.route_via 
+      ? `${booking.route_from} → ${booking.route_via} → ${booking.route_to}`
+      : `${booking.route_from} → ${booking.route_to}`;
+
+    return `Halo ${booking.customer_name},
+
+Terima kasih telah memesan travel di *Obie Travel*.
+
+*🎫 TIKET PERJALANAN ANDA*
+━━━━━━━━━━━━━━━
+📋 Order ID: ${booking.order_id}
+🛤️ Rute: ${route}
+📅 Tanggal: ${formattedDate}
+⏰ Jam Jemput: ${booking.pickup_time}
+📍 Alamat Jemput: ${booking.pickup_address}
+👥 Jumlah Penumpang: ${booking.passengers}
+💰 Total: ${formattedPrice}
+━━━━━━━━━━━━━━━
+✅ Status: *LUNAS*
+
+Mohon siapkan tiket ini saat penjemputan.
+Terima kasih! 🙏`;
+  };
+
+  const openWhatsApp = (booking: Booking) => {
+    const phone = formatPhoneForWhatsApp(booking.customer_phone);
+    const message = encodeURIComponent(generateWhatsAppMessage(booking));
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
   const filteredBookings = bookings.filter(booking => {
@@ -372,28 +414,38 @@ const Admin = () => {
                     )}
 
                     {booking.payment_status === 'paid' && (
-                      <Button
-                        onClick={() => generateTicketPdf({
-                          orderId: booking.order_id,
-                          customerName: booking.customer_name,
-                          customerPhone: booking.customer_phone,
-                          customerEmail: booking.customer_email,
-                          routeFrom: booking.route_from,
-                          routeTo: booking.route_to,
-                          routeVia: booking.route_via,
-                          travelDate: booking.travel_date,
-                          pickupTime: booking.pickup_time,
-                          pickupAddress: booking.pickup_address,
-                          passengers: booking.passengers,
-                          totalPrice: booking.total_price,
-                          notes: booking.notes,
-                        })}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        <Printer className="w-4 h-4 mr-2" />
-                        Cetak Tiket PDF
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          onClick={() => generateTicketPdf({
+                            orderId: booking.order_id,
+                            customerName: booking.customer_name,
+                            customerPhone: booking.customer_phone,
+                            customerEmail: booking.customer_email,
+                            routeFrom: booking.route_from,
+                            routeTo: booking.route_to,
+                            routeVia: booking.route_via,
+                            travelDate: booking.travel_date,
+                            pickupTime: booking.pickup_time,
+                            pickupAddress: booking.pickup_address,
+                            passengers: booking.passengers,
+                            totalPrice: booking.total_price,
+                            notes: booking.notes,
+                            paymentStatus: 'paid',
+                          })}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Printer className="w-4 h-4 mr-2" />
+                          Cetak Tiket PDF
+                        </Button>
+                        <Button
+                          onClick={() => openWhatsApp(booking)}
+                          className="w-full bg-green-600 hover:bg-green-700"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Hubungi via WhatsApp
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>
