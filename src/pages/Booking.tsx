@@ -26,6 +26,8 @@ const Booking = () => {
   const [addressMode, setAddressMode] = useState<AddressMode>('gps');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isEditingGpsAddress, setIsEditingGpsAddress] = useState(false);
+  const [additionalDetails, setAdditionalDetails] = useState('');
   
   const from = searchParams.get('from') || '';
   const to = searchParams.get('to') || '';
@@ -583,7 +585,7 @@ const Booking = () => {
                         </Button>
                         
                         {gpsCoords && (
-                          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 space-y-3">
                             <div className="flex items-start gap-3">
                               <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center flex-shrink-0">
                                 <MapPinned className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -603,6 +605,49 @@ const Booking = () => {
                                 </a>
                               </div>
                             </div>
+                            
+                            {/* Toggle Edit Address */}
+                            <button
+                              type="button"
+                              onClick={() => setIsEditingGpsAddress(!isEditingGpsAddress)}
+                              className="w-full flex items-center justify-center gap-2 p-2 rounded-lg border border-green-300 dark:border-green-700 bg-white/50 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/50 transition-colors text-sm"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                              {isEditingGpsAddress ? 'Tutup Edit' : 'Tambah Detail Alamat (No. Rumah, Patokan, dll)'}
+                            </button>
+                            
+                            {/* Additional Details Input */}
+                            {isEditingGpsAddress && (
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium text-green-800 dark:text-green-300">
+                                  Detail Tambahan:
+                                </label>
+                                <Textarea
+                                  value={additionalDetails}
+                                  onChange={(e) => {
+                                    setAdditionalDetails(e.target.value);
+                                    // Update the full address with additional details
+                                    const baseAddress = formData.pickupAddress.split('\n\n🏠')[0];
+                                    if (e.target.value.trim()) {
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        pickupAddress: `${baseAddress}\n\n🏠 Detail: ${e.target.value.trim()}`
+                                      }));
+                                    } else {
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        pickupAddress: baseAddress
+                                      }));
+                                    }
+                                  }}
+                                  placeholder="Contoh: Rumah warna biru, No. 45, sebelah warung Pak Andi, dekat masjid"
+                                  className="min-h-[80px] bg-white dark:bg-green-900/30 border-green-300 dark:border-green-700 text-foreground"
+                                />
+                                <p className="text-xs text-green-600 dark:text-green-400">
+                                  💡 Tambahkan patokan agar driver lebih mudah menemukan lokasi Anda
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
                         
