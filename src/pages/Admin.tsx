@@ -13,6 +13,8 @@ import AdminSchedules from '@/components/admin/AdminSchedules';
 import AdminOperations from '@/components/admin/AdminOperations';
 import AdminManifest from '@/components/admin/AdminManifest';
 import AdminAnalytics from '@/components/admin/AdminAnalytics';
+import ReportFinance from '@/components/admin/ReportFinance';
+import ReportPassengers from '@/components/admin/ReportPassengers';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -36,6 +38,10 @@ const Admin = () => {
         return <AdminOperations />;
       case 'analytics':
         return <AdminAnalytics />;
+      case 'report-finance':
+        return <ReportFinance />;
+      case 'report-passengers':
+        return <ReportPassengers />;
       default:
         return <AdminBookings onStatsUpdate={setStats} />;
     }
@@ -47,7 +53,9 @@ const Admin = () => {
       case 'manifest': return 'Manifes';
       case 'schedules': return 'Jadwal';
       case 'operations': return 'Operasional';
-      case 'analytics': return 'Analisa';
+      case 'analytics': return 'Analisa Data';
+      case 'report-finance': return 'Laporan Keuangan';
+      case 'report-passengers': return 'Laporan Penumpang';
       default: return 'Dashboard';
     }
   };

@@ -5,7 +5,10 @@ import {
   Truck, 
   BarChart3,
   FolderOpen,
-  ChevronDown
+  ChevronDown,
+  CircleDollarSign,
+  Users,
+  PieChart
 } from 'lucide-react';
 import {
   Sidebar,
@@ -38,14 +41,17 @@ const managementItems = [
   { id: 'operations', title: 'Operasional', icon: Truck },
 ];
 
-const analyticsItems = [
+const reportItems = [
   { id: 'analytics', title: 'Analisa Data', icon: BarChart3 },
+  { id: 'report-finance', title: 'Laporan Keuangan', icon: CircleDollarSign },
+  { id: 'report-passengers', title: 'Laporan Penumpang', icon: Users },
 ];
 
 const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const isManagementActive = managementItems.some(item => item.id === activeTab);
+  const isReportActive = reportItems.some(item => item.id === activeTab);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -95,33 +101,44 @@ const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
           </SidebarGroup>
         </Collapsible>
 
-        {/* Analisa Group */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-2 py-1.5 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            {!isCollapsed && <span>Laporan</span>}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {analyticsItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton
-                    onClick={() => onTabChange(item.id)}
-                    isActive={activeTab === item.id}
-                    tooltip={item.title}
-                    className={cn(
-                      "w-full justify-start",
-                      activeTab === item.id && "bg-primary/10 text-primary font-medium"
-                    )}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    {!isCollapsed && <span>{item.title}</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {/* Laporan Group */}
+        <Collapsible defaultOpen={isReportActive} className="group/collapsible">
+          <SidebarGroup>
+            <CollapsibleTrigger asChild>
+              <SidebarGroupLabel className="cursor-pointer hover:bg-muted/50 rounded-md px-2 py-1.5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <PieChart className="w-4 h-4" />
+                  {!isCollapsed && <span>Laporan</span>}
+                </div>
+                {!isCollapsed && (
+                  <ChevronDown className="w-4 h-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                )}
+              </SidebarGroupLabel>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {reportItems.map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        onClick={() => onTabChange(item.id)}
+                        isActive={activeTab === item.id}
+                        tooltip={item.title}
+                        className={cn(
+                          "w-full justify-start",
+                          activeTab === item.id && "bg-primary/10 text-primary font-medium"
+                        )}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
       </SidebarContent>
     </Sidebar>
   );
