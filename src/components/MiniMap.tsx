@@ -58,19 +58,62 @@ const SearchBox = ({
   const map = useMap();
 
   const searchLocation = async (searchQuery: string) => {
-    if (searchQuery.length < 3) {
+    if (searchQuery.length < 2) {
       setResults([]);
       return;
     }
 
     setIsSearching(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=id&limit=5`,
-        { headers: { 'Accept-Language': 'id' } }
+      // Get current map bounds for better local results
+      const bounds = map.getBounds();
+      const viewbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
+      
+      // Enhanced search with multiple strategies
+      const searchStrategies = [
+        // Strategy 1: Search with viewbox bias (prioritize current map area)
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=id&limit=8&viewbox=${viewbox}&bounded=0&addressdetails=1`,
+        // Strategy 2: Search with "Surabaya" appended if not already included
+        ...(searchQuery.toLowerCase().includes('surabaya') ? [] : [
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ', Surabaya')}&countrycodes=id&limit=5&addressdetails=1`
+        ]),
+        // Strategy 3: Search with "Jawa Timur" for broader regional results
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ', Jawa Timur')}&countrycodes=id&limit=5&addressdetails=1`,
+      ];
+
+      // Execute searches in parallel
+      const responses = await Promise.all(
+        searchStrategies.map(url => 
+          fetch(url, { headers: { 'Accept-Language': 'id' } })
+            .then(res => res.json())
+            .catch(() => [])
+        )
       );
-      const data = await response.json();
-      setResults(data);
+
+      // Combine and deduplicate results
+      const allResults = responses.flat();
+      const uniqueResults = allResults.reduce((acc: SearchResult[], curr: SearchResult) => {
+        const isDuplicate = acc.some(item => 
+          Math.abs(parseFloat(item.lat) - parseFloat(curr.lat)) < 0.0001 &&
+          Math.abs(parseFloat(item.lon) - parseFloat(curr.lon)) < 0.0001
+        );
+        if (!isDuplicate && curr.display_name) {
+          acc.push(curr);
+        }
+        return acc;
+      }, []);
+
+      // Sort by relevance (shorter display names often more specific)
+      const sortedResults = uniqueResults
+        .slice(0, 10)
+        .sort((a, b) => {
+          // Prioritize results that contain the exact search query
+          const aContains = a.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ? 0 : 1;
+          const bContains = b.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ? 0 : 1;
+          return aContains - bContains;
+        });
+
+      setResults(sortedResults);
       setShowResults(true);
     } catch (error) {
       console.error('Search error:', error);
