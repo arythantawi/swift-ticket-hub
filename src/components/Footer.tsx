@@ -1,4 +1,4 @@
-import { Bus, MapPin, Phone, Mail, Clock, Instagram, Facebook, MessageCircle } from 'lucide-react';
+import { Bus, MapPin, Phone, Mail, Clock, Instagram, Facebook, MessageCircle, ArrowUpRight, Heart } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -17,58 +17,66 @@ const Footer = () => {
     { day: 'Sabtu - Minggu', hours: '07:00 - 21:00' },
   ];
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <footer id="kontak" className="bg-foreground text-background">
-      <div className="container py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+    <footer id="kontak" className="bg-foreground text-background relative">
+      {/* Decorative top border */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-primary" />
+      
+      <div className="container py-16 md:py-20">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
                 <Bus className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="font-display font-bold text-lg text-background">
+              <span className="font-display font-bold text-xl text-background">
                 Travel Minibus
               </span>
             </div>
-            <p className="text-background/70 text-sm mb-6 leading-relaxed">
+            <p className="text-background/60 text-sm mb-8 leading-relaxed">
               Layanan travel minibus profesional untuk perjalanan nyaman dan aman 
               ke berbagai kota di Jawa dan Bali.
             </p>
             <div className="flex gap-3">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
+                className="w-11 h-11 rounded-xl bg-background/10 flex items-center justify-center hover:bg-gradient-to-br hover:from-pink-500 hover:to-purple-600 transition-all duration-300 group"
               >
-                <Instagram className="w-5 h-5" />
+                <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
+                className="w-11 h-11 rounded-xl bg-background/10 flex items-center justify-center hover:bg-blue-600 transition-all duration-300 group"
               >
-                <Facebook className="w-5 h-5" />
+                <Facebook className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-green-500 transition-colors"
+                className="w-11 h-11 rounded-xl bg-background/10 flex items-center justify-center hover:bg-green-500 transition-all duration-300 group"
               >
-                <MessageCircle className="w-5 h-5" />
+                <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </a>
             </div>
           </div>
 
           {/* Popular Routes */}
           <div>
-            <h4 className="font-display font-semibold text-lg mb-5">Rute Populer</h4>
+            <h4 className="font-display font-semibold text-lg mb-6">Rute Populer</h4>
             <ul className="space-y-3">
               {routes.map((route) => (
                 <li key={route}>
                   <a
                     href="#"
-                    className="text-background/70 text-sm hover:text-accent transition-colors flex items-center gap-2"
+                    className="text-background/60 text-sm hover:text-accent transition-colors flex items-center gap-2 group"
                   >
-                    <MapPin className="w-4 h-4 text-primary" />
-                    {route}
+                    <MapPin className="w-4 h-4 text-primary/60 group-hover:text-accent transition-colors" />
+                    <span>{route}</span>
+                    <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </a>
                 </li>
               ))}
@@ -77,19 +85,21 @@ const Footer = () => {
 
           {/* Service Hours */}
           <div>
-            <h4 className="font-display font-semibold text-lg mb-5">Jam Operasional</h4>
+            <h4 className="font-display font-semibold text-lg mb-6">Jam Operasional</h4>
             <div className="space-y-4">
               {serviceHours.map((item) => (
                 <div key={item.day} className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-primary mt-0.5" />
+                  <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center mt-0.5">
+                    <Clock className="w-4 h-4 text-primary" />
+                  </div>
                   <div>
                     <p className="text-background font-medium text-sm">{item.day}</p>
-                    <p className="text-background/60 text-sm">{item.hours}</p>
+                    <p className="text-background/50 text-sm">{item.hours}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-6 p-4 bg-background/5 rounded-xl border border-background/10">
+            <div className="mt-6 p-4 bg-gradient-to-br from-accent/20 to-accent/10 rounded-xl border border-accent/20">
               <p className="text-sm text-background/80">
                 <span className="text-accent font-semibold">📞 Hotline 24 Jam</span><br />
                 Untuk informasi & bantuan darurat
@@ -99,32 +109,38 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h4 className="font-display font-semibold text-lg mb-5">Hubungi Kami</h4>
+            <h4 className="font-display font-semibold text-lg mb-6">Hubungi Kami</h4>
             <div className="space-y-4">
               <a
                 href="tel:+6281234567890"
-                className="flex items-start gap-3 text-background/70 hover:text-accent transition-colors"
+                className="flex items-start gap-3 text-background/60 hover:text-accent transition-colors group"
               >
-                <Phone className="w-5 h-5 text-primary mt-0.5" />
+                <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center mt-0.5 group-hover:bg-accent/20 transition-colors">
+                  <Phone className="w-4 h-4 text-primary group-hover:text-accent transition-colors" />
+                </div>
                 <div>
-                  <p className="text-sm">Telepon / WhatsApp</p>
+                  <p className="text-xs text-background/50">Telepon / WhatsApp</p>
                   <p className="text-background font-medium">0812-3456-7890</p>
                 </div>
               </a>
               <a
                 href="mailto:info@travelminibus.com"
-                className="flex items-start gap-3 text-background/70 hover:text-accent transition-colors"
+                className="flex items-start gap-3 text-background/60 hover:text-accent transition-colors group"
               >
-                <Mail className="w-5 h-5 text-primary mt-0.5" />
+                <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center mt-0.5 group-hover:bg-accent/20 transition-colors">
+                  <Mail className="w-4 h-4 text-primary group-hover:text-accent transition-colors" />
+                </div>
                 <div>
-                  <p className="text-sm">Email</p>
+                  <p className="text-xs text-background/50">Email</p>
                   <p className="text-background font-medium">info@travelminibus.com</p>
                 </div>
               </a>
-              <div className="flex items-start gap-3 text-background/70">
-                <MapPin className="w-5 h-5 text-primary mt-0.5" />
+              <div className="flex items-start gap-3 text-background/60">
+                <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center mt-0.5">
+                  <MapPin className="w-4 h-4 text-primary" />
+                </div>
                 <div>
-                  <p className="text-sm">Kantor Pusat</p>
+                  <p className="text-xs text-background/50">Kantor Pusat</p>
                   <p className="text-background font-medium text-sm">
                     Jl. Raya Surabaya No. 123<br />
                     Surabaya, Jawa Timur
@@ -139,16 +155,22 @@ const Footer = () => {
       {/* Bottom Bar */}
       <div className="border-t border-background/10">
         <div className="container py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-background/60 text-sm">
-            © {currentYear} Travel Minibus. Semua hak dilindungi.
+          <p className="text-background/50 text-sm flex items-center gap-1">
+            © {currentYear} Travel Minibus. Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> in Indonesia
           </p>
-          <div className="flex gap-6 text-sm">
-            <a href="#" className="text-background/60 hover:text-accent transition-colors">
+          <div className="flex items-center gap-6 text-sm">
+            <a href="#" className="text-background/50 hover:text-accent transition-colors">
               Syarat & Ketentuan
             </a>
-            <a href="#" className="text-background/60 hover:text-accent transition-colors">
+            <a href="#" className="text-background/50 hover:text-accent transition-colors">
               Kebijakan Privasi
             </a>
+            <button
+              onClick={scrollToTop}
+              className="w-10 h-10 rounded-xl bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
+            >
+              <ArrowUpRight className="w-5 h-5 -rotate-45" />
+            </button>
           </div>
         </div>
       </div>

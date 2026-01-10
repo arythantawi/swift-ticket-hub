@@ -1,113 +1,157 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { Bus, MapPin, Calendar, ArrowRight } from 'lucide-react';
+import { Bus, MapPin, Calendar, ArrowRight, Shield, Star } from 'lucide-react';
 import RouteSearch from './RouteSearch';
+
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
-  const decorRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         defaults: {
-          ease: 'power3.out'
+          ease: 'power4.out'
         }
       });
-      tl.from(titleRef.current, {
-        y: 60,
+
+      // Staggered entrance animations
+      tl.from(badgeRef.current, {
+        y: -30,
         opacity: 0,
-        duration: 1
-      }).from(subtitleRef.current, {
-        y: 40,
+        duration: 0.8,
+        ease: 'back.out(1.7)'
+      })
+      .from(titleRef.current, {
+        y: 80,
         opacity: 0,
-        duration: 0.8
-      }, '-=0.6').from(searchRef.current, {
+        duration: 1.2,
+        ease: 'power4.out'
+      }, '-=0.4')
+      .from(subtitleRef.current, {
         y: 50,
         opacity: 0,
-        duration: 0.8
-      }, '-=0.5').from(decorRef.current, {
-        scale: 0.8,
+        duration: 1,
+      }, '-=0.7')
+      .from(statsRef.current?.children || [], {
+        y: 40,
         opacity: 0,
-        duration: 1
-      }, '-=0.8');
+        duration: 0.8,
+        stagger: 0.15,
+      }, '-=0.6')
+      .from(searchRef.current, {
+        y: 60,
+        opacity: 0,
+        scale: 0.95,
+        duration: 1,
+        ease: 'power3.out'
+      }, '-=0.5');
 
-      // Floating animation for decoration
-      gsap.to(decorRef.current, {
-        y: -15,
-        duration: 2,
-        ease: 'power1.inOut',
+      // Subtle floating animation for background elements
+      gsap.to('.hero-blob-1', {
+        y: -20,
+        x: 10,
+        duration: 4,
+        ease: 'sine.inOut',
         yoyo: true,
         repeat: -1
       });
+
+      gsap.to('.hero-blob-2', {
+        y: 15,
+        x: -15,
+        duration: 5,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1
+      });
+
     }, heroRef);
     return () => ctx.revert();
   }, []);
-  return <section ref={heroRef} className="relative min-h-screen lg:min-h-[95vh] flex items-center overflow-hidden pt-20">
-      {/* Background gradient */}
-      <div className="absolute inset-0 travel-gradient" />
+
+  return (
+    <section ref={heroRef} className="relative min-h-screen lg:min-h-[95vh] flex items-center overflow-hidden pt-20">
+      {/* Clean gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/95 to-primary/85" />
       
-      {/* Decorative circles */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-travel-gold/10 rounded-full blur-3xl" />
+      {/* Subtle geometric shapes */}
+      <div className="hero-blob-1 absolute top-20 left-10 w-[500px] h-[500px] bg-white/[0.03] rounded-full blur-3xl" />
+      <div className="hero-blob-2 absolute bottom-10 right-0 w-[600px] h-[600px] bg-accent/10 rounded-full blur-3xl" />
       
-      {/* Pattern overlay */}
-      <div className="absolute inset-0 opacity-10" style={{
-      backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-    }} />
+      {/* Minimal grid pattern */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+        backgroundSize: '60px 60px'
+      }} />
 
       <div className="container relative z-10 py-12 lg:py-20">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="text-white">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
-              <Bus className="w-5 h-5" />
-              <span className="text-sm font-medium">Travel Minibus Terpercaya</span>
+            {/* Badge */}
+            <div ref={badgeRef} className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-full mb-8 border border-white/10">
+              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+              <span className="text-sm font-medium tracking-wide">Travel Minibus Terpercaya</span>
             </div>
 
-            <h1 ref={titleRef} className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+            {/* Title */}
+            <h1 ref={titleRef} className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.1] mb-8">
               Perjalanan Nyaman ke
-              <span className="block text-travel-gold-light">Seluruh Jawa & Bali</span>
+              <span className="block mt-2 bg-gradient-to-r from-accent via-yellow-300 to-accent bg-clip-text text-transparent">
+                Seluruh Jawa & Bali
+              </span>
             </h1>
 
-            <p ref={subtitleRef} className="text-lg md:text-xl text-white/80 mb-8 max-w-lg">
+            {/* Subtitle */}
+            <p ref={subtitleRef} className="text-lg md:text-xl text-white/70 mb-10 max-w-lg leading-relaxed">
               Layanan travel minibus door-to-door dengan armada modern, 
               jadwal fleksibel, dan harga terjangkau untuk perjalanan Anda.
             </p>
 
-            <div className="flex flex-wrap gap-6 text-sm text-white/70">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <MapPin className="w-5 h-5" />
+            {/* Stats */}
+            <div ref={statsRef} className="flex flex-wrap gap-8">
+              <div className="group">
+                <div className="flex items-center gap-3 mb-1">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-300">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <span className="text-2xl font-bold">15+</span>
                 </div>
-                <span>15+ Kota Tujuan</span>
+                <span className="text-sm text-white/60 ml-[52px]">Kota Tujuan</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <Calendar className="w-5 h-5" />
+              <div className="group">
+                <div className="flex items-center gap-3 mb-1">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-300">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <span className="text-2xl font-bold">365</span>
                 </div>
-                <span>Jadwal Harian</span>
+                <span className="text-sm text-white/60 ml-[52px]">Hari/Tahun</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <Bus className="w-5 h-5" />
+              <div className="group">
+                <div className="flex items-center gap-3 mb-1">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors duration-300">
+                    <Star className="w-5 h-5" />
+                  </div>
+                  <span className="text-2xl font-bold">4.9</span>
                 </div>
-                <span>Armada Modern</span>
+                <span className="text-sm text-white/60 ml-[52px]">Rating</span>
               </div>
             </div>
           </div>
 
           {/* Search Card */}
-          <div ref={searchRef}>
+          <div ref={searchRef} className="lg:pl-8">
             <RouteSearch />
           </div>
         </div>
       </div>
-
-      {/* Decorative minibus illustration placeholder */}
-      <div ref={decorRef} className="hidden xl:block absolute bottom-10 right-0 w-80 h-40 opacity-20">
-        
-      </div>
-    </section>;
+    </section>
+  );
 };
+
 export default Hero;
