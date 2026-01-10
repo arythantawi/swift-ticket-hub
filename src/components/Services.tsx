@@ -1,25 +1,28 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { CalendarClock, Wallet, Smartphone } from 'lucide-react';
+import { CalendarClock, Wallet, Smartphone, ArrowRight } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const services = [
   {
     icon: CalendarClock,
-    title: 'BERANGKAT SETIAP HARI',
-    iconBg: 'from-blue-400 to-blue-600',
+    title: 'Berangkat Setiap Hari',
+    description: 'Jadwal keberangkatan tersedia setiap hari',
+    gradient: 'from-blue-500 to-cyan-500',
   },
   {
     icon: Wallet,
-    title: 'HARGA TERJANGKAU',
-    iconBg: 'from-amber-400 to-amber-600',
+    title: 'Harga Terjangkau',
+    description: 'Tarif kompetitif untuk semua rute',
+    gradient: 'from-amber-500 to-orange-500',
   },
   {
     icon: Smartphone,
-    title: 'PESAN VIA ONLINE',
-    iconBg: 'from-sky-400 to-sky-600',
+    title: 'Pesan Via Online',
+    description: 'Proses booking cepat dan mudah',
+    gradient: 'from-emerald-500 to-teal-500',
   },
 ];
 
@@ -28,19 +31,27 @@ const Services = () => {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Set initial state to visible first
-      gsap.set('.service-card', { opacity: 1, y: 0 });
-      
+      gsap.from('.service-title', {
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top 80%',
+        },
+        y: 40,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out'
+      });
+
       gsap.from('.service-card', {
         scrollTrigger: {
           trigger: '.services-grid',
-          start: 'top 90%',
+          start: 'top 85%',
         },
-        y: 30,
+        y: 50,
         opacity: 0,
-        duration: 0.5,
-        stagger: 0.1,
-        clearProps: 'all',
+        duration: 0.6,
+        stagger: 0.15,
+        ease: 'power2.out'
       });
     }, sectionRef);
 
@@ -48,10 +59,10 @@ const Services = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-16 bg-muted/30">
+    <section ref={sectionRef} className="py-20 bg-muted/30">
       <div className="container">
-        <div className="text-center mb-10">
-          <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+        <div className="service-title text-center mb-14">
+          <span className="inline-block px-5 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-4">
             Layanan Kami
           </span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
@@ -59,18 +70,33 @@ const Services = () => {
           </h2>
         </div>
 
-        <div className="services-grid grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="services-grid grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {services.map((service, index) => (
             <div
               key={index}
-              className="service-card group bg-card rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border hover:border-primary/20 text-center"
+              className="service-card group relative bg-card rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 border border-border/50 hover:border-primary/20 overflow-hidden hover:-translate-y-2"
             >
-              <div className={`w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${service.iconBg} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                <service.icon className="w-10 h-10 text-white" strokeWidth={1.5} />
+              {/* Gradient background on hover */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+              
+              <div className="relative z-10">
+                <div className={`w-20 h-20 mb-8 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                  <service.icon className="w-10 h-10 text-white" strokeWidth={1.5} />
+                </div>
+                
+                <h3 className="font-display text-xl font-bold text-foreground mb-3">
+                  {service.title}
+                </h3>
+                
+                <p className="text-muted-foreground mb-6">
+                  {service.description}
+                </p>
+
+                <div className="flex items-center text-primary font-medium text-sm group-hover:gap-3 transition-all duration-300">
+                  <span>Selengkapnya</span>
+                  <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-foreground tracking-wide">
-                {service.title}
-              </h3>
             </div>
           ))}
         </div>

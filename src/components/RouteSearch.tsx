@@ -47,25 +47,33 @@ const RouteSearch = () => {
   };
 
   return (
-    <div className="glass-card rounded-2xl p-6 md:p-8 shadow-2xl">
-      <h3 className="font-display text-xl font-semibold text-foreground mb-6">
-        Cari Jadwal Perjalanan
-      </h3>
+    <div className="bg-card/95 backdrop-blur-xl rounded-3xl p-8 md:p-10 shadow-2xl border border-border/50">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <Search className="w-6 h-6 text-primary" />
+        </div>
+        <div>
+          <h3 className="font-display text-xl font-semibold text-foreground">
+            Cari Jadwal Perjalanan
+          </h3>
+          <p className="text-sm text-muted-foreground">Pesan tiket dengan mudah</p>
+        </div>
+      </div>
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         {/* Origin & Destination */}
         <div className="relative">
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="relative">
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
+            <div className="relative group">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Kota Asal
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary transition-colors" />
                 <select
                   value={origin}
                   onChange={(e) => setOrigin(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none cursor-pointer"
+                  className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-background transition-all duration-300 appearance-none cursor-pointer text-foreground font-medium"
                 >
                   <option value="">Pilih kota asal</option>
                   {cities.map((city) => (
@@ -78,22 +86,22 @@ const RouteSearch = () => {
             {/* Swap button */}
             <button
               onClick={swapCities}
-              className="absolute left-1/2 top-[52px] -translate-x-1/2 z-10 w-10 h-10 bg-card border-2 border-border rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 hidden md:flex"
+              className="absolute left-1/2 top-[58px] -translate-x-1/2 z-10 w-11 h-11 bg-card border-2 border-primary/20 rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 hidden md:flex shadow-lg"
               title="Tukar kota"
             >
-              <ArrowLeftRight className="w-4 h-4" />
+              <ArrowLeftRight className="w-5 h-5" />
             </button>
 
-            <div className="relative">
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
+            <div className="relative group">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Kota Tujuan
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent transition-colors" />
                 <select
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none cursor-pointer"
+                  className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-background transition-all duration-300 appearance-none cursor-pointer text-foreground font-medium"
                 >
                   <option value="">Pilih kota tujuan</option>
                   {cities.map((city) => (
@@ -108,31 +116,31 @@ const RouteSearch = () => {
         {/* Date & Passengers */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Tanggal Berangkat
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-background transition-all duration-300 text-foreground font-medium"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Jumlah Penumpang
             </label>
             <div className="relative">
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <select
                 value={passengers}
                 onChange={(e) => setPassengers(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none cursor-pointer"
+                className="w-full pl-12 pr-4 py-4 bg-muted/50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-background transition-all duration-300 appearance-none cursor-pointer text-foreground font-medium"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                   <option key={num} value={num}>{num} Penumpang</option>
@@ -145,7 +153,7 @@ const RouteSearch = () => {
         {/* Search Button */}
         <Button
           onClick={handleSearch}
-          className="w-full btn-gold py-6 text-lg group"
+          className="w-full bg-gradient-to-r from-accent to-yellow-500 hover:from-accent/90 hover:to-yellow-500/90 text-accent-foreground py-7 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 group"
         >
           <Search className="w-5 h-5 mr-2" />
           Cari Jadwal
