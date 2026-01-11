@@ -46,8 +46,10 @@ const HeroBanner = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isTextVisible, setIsTextVisible] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const textOverlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -75,6 +77,11 @@ const HeroBanner = () => {
 
     return () => clearInterval(interval);
   }, [banners.length]);
+
+  // Reset text visibility when banner changes
+  useEffect(() => {
+    setIsTextVisible(false);
+  }, [currentIndex]);
 
   // Animate content on banner change
   useEffect(() => {
@@ -105,6 +112,59 @@ const HeroBanner = () => {
 
     return () => ctx.revert();
   }, [banners.length]);
+
+  // Handle banner click to show text with GSAP animation
+  const handleBannerClick = (e: React.MouseEvent) => {
+    // Don't trigger if clicking on navigation or buttons
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) return;
+    
+    if (!isTextVisible && textOverlayRef.current) {
+      setIsTextVisible(true);
+      
+      const titleEl = textOverlayRef.current.querySelector('.banner-title');
+      const subtitleEl = textOverlayRef.current.querySelector('.banner-subtitle');
+      const buttonEl = textOverlayRef.current.querySelector('.banner-button');
+      
+      // Animate the overlay container
+      gsap.fromTo(textOverlayRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: 'power2.out' }
+      );
+      
+      // Animate title from bottom
+      if (titleEl) {
+        gsap.fromTo(titleEl,
+          { opacity: 0, y: 60 },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.1 }
+        );
+      }
+      
+      // Animate subtitle from bottom with stagger
+      if (subtitleEl) {
+        gsap.fromTo(subtitleEl,
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.25 }
+        );
+      }
+      
+      // Animate button from bottom
+      if (buttonEl) {
+        gsap.fromTo(buttonEl,
+          { opacity: 0, y: 30, scale: 0.9 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.7)', delay: 0.4 }
+        );
+      }
+    } else if (isTextVisible && textOverlayRef.current) {
+      // Hide animation
+      gsap.to(textOverlayRef.current, {
+        opacity: 0,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: () => setIsTextVisible(false)
+      });
+    }
+  };
 
   if (isLoading || banners.length === 0) return null;
 
@@ -167,9 +227,9 @@ const HeroBanner = () => {
   const renderBanner = () => {
     switch (layoutType) {
       case 'image_full':
-        // Full image only - no text overlay
+        // Full image only - click to reveal text
         return (
-          <div className="relative">
+          <div className="relative cursor-pointer" onClick={handleBannerClick}>
             <div className="relative w-full aspect-[16/9] md:aspect-[21/9]">
               {hasImage ? (
                 <img 
@@ -181,8 +241,42 @@ const HeroBanner = () => {
                 <div className="w-full h-full bg-gradient-to-br from-primary to-primary/80" />
               )}
             </div>
-            {currentBanner.link_url && (
-              <a href={currentBanner.link_url} className="absolute inset-0 z-10" aria-label={currentBanner.title} />
+            
+            {/* Click-to-reveal text overlay */}
+            {isTextVisible && (
+              <div 
+                ref={textOverlayRef}
+                className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col items-center justify-end pb-12 md:pb-16 px-4"
+              >
+                <h2 className="banner-title text-2xl md:text-5xl font-bold text-white mb-3 max-w-3xl leading-tight drop-shadow-lg text-center">
+                  {currentBanner.title}
+                </h2>
+                {currentBanner.subtitle && (
+                  <p className="banner-subtitle text-base md:text-xl text-white/90 mb-6 max-w-2xl leading-relaxed drop-shadow text-center">
+                    {currentBanner.subtitle}
+                  </p>
+                )}
+                {currentBanner.link_url && currentBanner.button_text && (
+                  <Button
+                    asChild
+                    size="lg"
+                    className="banner-button bg-white text-primary hover:bg-white/90 px-8 py-5 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                  >
+                    <a href={currentBanner.link_url}>{currentBanner.button_text}</a>
+                  </Button>
+                )}
+              </div>
+            )}
+            
+            {/* Hint to click */}
+            {!isTextVisible && (currentBanner.title || currentBanner.subtitle) && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-black/50 backdrop-blur-sm text-white text-xs md:text-sm px-4 py-2 rounded-full animate-pulse">
+                Klik untuk lihat detail
+              </div>
+            )}
+            
+            {currentBanner.link_url && !isTextVisible && (
+              <a href={currentBanner.link_url} className="absolute inset-0 z-5" aria-label={currentBanner.title} />
             )}
             <NavigationArrows isDark={true} />
             <DotsIndicator position="bottom-4" />
