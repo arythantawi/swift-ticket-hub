@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, ImageOff } from 'lucide-react';
 
 interface BannerPreviewProps {
   title: string;
@@ -35,9 +36,44 @@ const convertGoogleDriveUrl = (url: string): string => {
   return url;
 };
 
+// Image component with error handling using React state
+const PreviewImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  if (hasError) {
+    return (
+      <div className={`flex flex-col items-center justify-center bg-muted text-muted-foreground gap-2 ${className}`}>
+        <ImageOff className="w-8 h-8 opacity-50" />
+        <span className="text-xs">Gambar tidak dapat dimuat</span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {isLoading && (
+        <div className={`absolute inset-0 flex items-center justify-center bg-muted animate-pulse ${className}`}>
+          <span className="text-xs text-muted-foreground">Memuat...</span>
+        </div>
+      )}
+      <img 
+        src={src}
+        alt={alt}
+        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        onLoad={() => setIsLoading(false)}
+        onError={() => {
+          setIsLoading(false);
+          setHasError(true);
+        }}
+      />
+    </>
+  );
+};
+
 const BannerPreview = ({ title, subtitle, image_url, link_url, button_text, layout_type }: BannerPreviewProps) => {
-  const hasImage = image_url;
-  const convertedImageUrl = image_url ? convertGoogleDriveUrl(image_url) : null;
+  const hasImage = image_url && image_url.trim() !== '';
+  const convertedImageUrl = hasImage ? convertGoogleDriveUrl(image_url) : '';
 
   const renderPreview = () => {
     switch (layout_type) {
@@ -46,14 +82,10 @@ const BannerPreview = ({ title, subtitle, image_url, link_url, button_text, layo
           <div className="relative rounded-xl overflow-hidden">
             <div className="relative w-full aspect-[21/9]">
               {hasImage ? (
-                <img 
-                  src={convertedImageUrl!}
+                <PreviewImage 
+                  src={convertedImageUrl}
                   alt={title || 'Preview'}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-sm">Gambar tidak dapat dimuat</div>';
-                  }}
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
@@ -104,14 +136,10 @@ const BannerPreview = ({ title, subtitle, image_url, link_url, button_text, layo
             {hasImage ? (
               <>
                 <div className="relative w-full aspect-[21/9]">
-                  <img 
-                    src={convertedImageUrl!}
+                  <PreviewImage 
+                    src={convertedImageUrl}
                     alt={title || 'Preview'}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                      (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-sm">Gambar tidak dapat dimuat</div>';
-                    }}
                   />
                 </div>
                 <div className="bg-gradient-to-r from-primary to-primary/90 px-3 py-2">
