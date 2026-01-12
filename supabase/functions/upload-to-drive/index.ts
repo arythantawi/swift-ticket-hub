@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as encodeBase64 } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,18 +26,23 @@ async function getAccessToken(): Promise<string> {
   });
 
   const data = await response.json();
-  
+
   if (!response.ok) {
     console.error('Token refresh error:', data);
     throw new Error(`Failed to refresh token: ${data.error_description || data.error}`);
   }
-  
+
   return data.access_token;
 }
 
-async function uploadToDrive(accessToken: string, fileContent: Uint8Array, fileName: string, mimeType: string): Promise<{ id: string; webViewLink: string }> {
+async function uploadToDrive(
+  accessToken: string,
+  fileContent: Uint8Array,
+  fileName: string,
+  mimeType: string
+): Promise<{ id: string; webViewLink: string }> {
   const folderId = Deno.env.get('GOOGLE_DRIVE_FOLDER_ID');
-  
+
   const metadata = {
     name: fileName,
     parents: folderId ? [folderId] : [],
@@ -47,33 +53,39 @@ async function uploadToDrive(accessToken: string, fileContent: Uint8Array, fileN
   const closeDelim = "\r\n--" + boundary + "--";
 
   const metadataString = JSON.stringify(metadata);
-  
+
   // Build multipart body
   const encoder = new TextEncoder();
   const metadataPart = encoder.encode(
     delimiter +
-    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-    metadataString
+      'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+      metadataString
   );
-  
+
   const filePart = encoder.encode(
     delimiter +
-    'Content-Type: ' + mimeType + '\r\n' +
-    'Content-Transfer-Encoding: base64\r\n\r\n'
+      'Content-Type: ' +
+      mimeType +
+      '\r\n' +
+      'Content-Transfer-Encoding: base64\r\n\r\n'
   );
-  
-  // Convert file content to base64
-  const base64Content = btoa(String.fromCharCode(...fileContent));
+
+  // Convert file content to base64 safely (avoid stack overflow on large Uint8Array)
+  // NOTE: std@0.168 base64 encoder expects ArrayBuffer (not Uint8Array)
+  const base64Content = encodeBase64(Uint8Array.from(fileContent).buffer);
   const base64Part = encoder.encode(base64Content);
-  
+
   const closePart = encoder.encode(closeDelim);
-  
+
   // Combine all parts
-  const body = new Uint8Array(metadataPart.length + filePart.length + base64Part.length + closePart.length);
+  const body = new Uint8Array(
+    metadataPart.length + filePart.length + base64Part.length + closePart.length
+  );
   body.set(metadataPart, 0);
   body.set(filePart, metadataPart.length);
   body.set(base64Part, metadataPart.length + filePart.length);
   body.set(closePart, metadataPart.length + filePart.length + base64Part.length);
+
 
   const response = await fetch(
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink',
