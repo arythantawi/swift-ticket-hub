@@ -61,6 +61,9 @@ const PaymentUpload = ({ orderId, onUploadSuccess }: PaymentUploadProps) => {
         'https://ojxydihfvorglvmqyyaq.supabase.co/functions/v1/upload-to-drive',
         {
           method: 'POST',
+          headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qeHlkaWhmdm9yZ2x2bXF5eWFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4MjQwMzAsImV4cCI6MjA4MzQwMDAzMH0.sY84vB0VcZwlSGo2W8PnAFImeOEk0ykWYJMCgAtqbIw',
+          },
           body: formData,
         }
       );
